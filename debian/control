@@ -3,7 +3,7 @@ Section: interpreters
 Priority: optional
 Maintainer: John Leach <john@brightbox.co.uk>
 XSBC-Original-Maintainer: akira yamada <akira@debian.org>
-Build-Depends: cdbs, debhelper (>= 5), autotools-dev, autoconf, m4, dpatch, patch, bison, binutils (>= 2.14.90.0.7), libgdbm-dev, libncurses5-dev, libreadline5-dev, tcl8.4-dev, tk8.4-dev, zlib1g-dev, libssl-dev (>= 0.9.6b), gcc-4.1 (>= 4.1.1-11) [m68k]
+Build-Depends: cdbs, debhelper (>= 5), autotools-dev, autoconf, m4, dpatch, patch, bison, binutils (>= 2.14.90.0.7), libgdbm-dev, libncurses5-dev, libreadline5-dev, tcl8.4-dev, tk8.4-dev, zlib1g-dev, libssl-dev (>= 0.9.6b), gcc-4.1 (>= 4.1.1-11) [m68k], libgoogle-perftools-dev
 Standards-Version: 3.7.2
 
 Package: ruby1.8
