@@ -2,6 +2,7 @@
 
 ruby_ver = 1.8
 tcltk_ver = 8.4
+ruby_ee_ver = 20081205
 
 arch_name = $(subst linux-gnu,linux-,$(patsubst %linux-gnu,%linux,$(DEB_BUILD_GNU_TYPE)))
 ruby_libdir = usr/lib/ruby/$(ruby_ver)
@@ -200,6 +201,8 @@ binary-install/ruby$(ruby_ver)-dev::
 	    for h in *.h; do \
 		echo usr/lib/ruby/$(ruby_ver)/$(arch_name)/$$h; \
 	    done) | xargs dh_movefiles -p$(cdbs_curpkg)
+	sed -e 's/@@ruby_ee_ver@@/$(ruby_ee_ver)/' $(CURDIR)/debian/ree-version > $(CURDIR)/debian/tmp/usr/bin/ree-version
+	chmod 0755 $(CURDIR)/debian/tmp/usr/bin/ree-version
 
 binary-install/ruby$(ruby_ver)::
 	dh_movefiles -p$(cdbs_curpkg) \
