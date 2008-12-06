@@ -2,6 +2,9 @@ Ruby for Debian GNU/Linux
 -------------------------
 
 This is Ruby package for Debian GNU/Linux.
+ 
+This package provides version 1.8 series of Ruby with the Phusion(tm) Ruby
+"Enterprise Edition" patches included: http://www.rubyenterpriseedition.com/
 
 Ruby is the interpreted scripting language for quick and easy
 object-oriented programming.  It has many features to process text files and

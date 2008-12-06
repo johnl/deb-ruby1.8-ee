@@ -1,9 +1,8 @@
 Source: ruby1.8
 Section: interpreters
 Priority: optional
-Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Maintainer: John Leach <john@brightbox.co.uk>
 XSBC-Original-Maintainer: akira yamada <akira@debian.org>
-Uploaders: Fumitoshi UKAI <ukai@debian.or.jp>, Daigo Moriwaki <daigo@debian.org>
 Build-Depends: cdbs, debhelper (>= 5), autotools-dev, autoconf, m4, dpatch, patch, bison, binutils (>= 2.14.90.0.7), libgdbm-dev, libncurses5-dev, libreadline5-dev, tcl8.4-dev, tk8.4-dev, zlib1g-dev, libssl-dev (>= 0.9.6b), gcc-4.1 (>= 4.1.1-11) [m68k]
 Standards-Version: 3.7.2
 
@@ -17,7 +16,8 @@ Description: Interpreter of object-oriented scripting language Ruby 1.8
  files and to do system management tasks (as in perl).  It is simple,
  straight-forward, and extensible.
  .
- This package provides version 1.8 series of Ruby.
+ This package provides version 1.8 series of Ruby with the Phusion(tm) Ruby
+ "Enterprise Edition" patches included: http://www.rubyenterpriseedition.com/
  .
  On Debian, Ruby 1.8 is provided as separate packages.  You can get
  full Ruby 1.8 distribution by installing following packages.
