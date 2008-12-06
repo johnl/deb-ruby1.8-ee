@@ -3,16 +3,8 @@
 803_soap_massmem
 805_ruby-bugs-11507.dpatch
 807_sync_try_lock_always_fail.dpatch
-808_rexml_document_transitive
 901_ri_pager.dpatch
 902_extra_search_path.dpatch
 903_rdoc_documents.dpatch
-100_CVE-2007-5162
-101_CVE-2008-2662+2663+2664+2725+2726.dpatch
 102_CVE-2008-3790
-103_CVE-2008-2376
-104_CVE-2008-3443
-105_CVE-2008-3656
-106_CVE-2008-3905
 107_CVE-2008-3657
-108_CVE-2008-3655

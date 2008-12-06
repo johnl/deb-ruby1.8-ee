@@ -1,3 +1,10 @@
+ruby1.8 (1.8.6.20081205-0bbox1) hardy; urgency=low
+
+  * New upstream release 20081205
+  * Removed patches accepted upstream
+
+ -- John Leach <john@brightbox.net>  Sat, 06 Dec 2008 22:07:07 +0000
+
 ruby1.8 (1.8.6.111-2ubuntu1.2) hardy-security; urgency=low
 
   * SECURITY UPDATE: denial of service via resource exhaustion in the REXML
