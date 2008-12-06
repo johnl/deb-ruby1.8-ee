@@ -1,0 +1,31 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 807_sync_try_lock_always_fail.dpatch by akira yamada <akira@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Bug#429686
+
+@DPATCH@
+diff -urNad ruby1.8-1.8.6.36~/lib/sync.rb ruby1.8-1.8.6.36/lib/sync.rb
+--- ruby1.8-1.8.6.36~/lib/sync.rb	2007-02-13 08:01:19.000000000 +0900
++++ ruby1.8-1.8.6.36/lib/sync.rb	2007-07-23 16:22:15.000000000 +0900
+@@ -54,6 +54,7 @@
+   # exceptions
+   class Err < StandardError
+     def Err.Fail(*opt)
++      Thread.critical = false
+       fail self, sprintf(self::Message, *opt)
+     end
+     
+@@ -129,10 +130,10 @@
+   
+   # locking methods.
+   def sync_try_lock(mode = EX)
+-    return unlock if sync_mode == UN
++    return unlock if mode == UN
+     
+     Thread.critical = true
+-    ret = sync_try_lock_sub(sync_mode)
++    ret = sync_try_lock_sub(mode)
+     Thread.critical = false
+     ret
+   end

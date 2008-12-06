@@ -1,0 +1,19 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 901_ri_pager.dpatch by akira yamada <akira@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad ruby1.8-1.8.6~/lib/rdoc/ri/ri_display.rb ruby1.8-1.8.6/lib/rdoc/ri/ri_display.rb
+--- ruby1.8-1.8.6~/lib/rdoc/ri/ri_display.rb	2007-02-13 08:01:19.000000000 +0900
++++ ruby1.8-1.8.6/lib/rdoc/ri/ri_display.rb	2007-03-13 16:31:31.000000000 +0900
+@@ -210,7 +210,7 @@
+ 
+   def setup_pager
+     unless @options.use_stdout
+-      for pager in [ ENV['PAGER'], "less", "more", 'pager' ].compact.uniq
++      for pager in [ ENV['PAGER'], 'pager', "less", "more" ].compact.uniq
+         return IO.popen(pager, "w") rescue nil
+       end
+       @options.use_stdout = true

@@ -1,0 +1,59 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 808_rexml_document_transitive.dpatch by akira yamada <akira@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad ruby1.8-1.8.6.111~/lib/rexml/document.rb ruby1.8-1.8.6.111/lib/rexml/document.rb
+--- ruby1.8-1.8.6.111~/lib/rexml/document.rb	2007-07-28 11:46:08.000000000 +0900
++++ ruby1.8-1.8.6.111/lib/rexml/document.rb	2007-10-24 12:34:47.000000000 +0900
+@@ -183,7 +183,8 @@
+         output = Output.new( output, xml_decl.encoding )
+       end
+       formatter = if indent > -1
+-          if transitive
++          if trans
++            require "rexml/formatters/transitive"
+             REXML::Formatters::Transitive.new( indent, ie_hack )
+           else
+             REXML::Formatters::Pretty.new( indent, ie_hack )
+diff -urNad ruby1.8-1.8.6.111~/lib/rexml/element.rb ruby1.8-1.8.6.111/lib/rexml/element.rb
+--- ruby1.8-1.8.6.111~/lib/rexml/element.rb	2007-07-28 11:46:08.000000000 +0900
++++ ruby1.8-1.8.6.111/lib/rexml/element.rb	2007-10-24 12:35:05.000000000 +0900
+@@ -670,10 +670,11 @@
+     #  out = ''
+     #  doc.write( out )     #-> doc is written to the string 'out'
+     #  doc.write( $stdout ) #-> doc written to the console
+-    def write(writer=$stdout, indent=-1, transitive=false, ie_hack=false)
++    def write(output=$stdout, indent=-1, transitive=false, ie_hack=false)
+       Kernel.warn("#{self.class.name}.write is deprecated.  See REXML::Formatters")
+       formatter = if indent > -1
+           if transitive
++            require "rexml/formatters/transitive"
+             REXML::Formatters::Transitive.new( indent, ie_hack )
+           else
+             REXML::Formatters::Pretty.new( indent, ie_hack )
+diff -urNad ruby1.8-1.8.6.111~/lib/rexml/formatters/transitive.rb ruby1.8-1.8.6.111/lib/rexml/formatters/transitive.rb
+--- ruby1.8-1.8.6.111~/lib/rexml/formatters/transitive.rb	2007-07-30 11:26:17.000000000 +0900
++++ ruby1.8-1.8.6.111/lib/rexml/formatters/transitive.rb	2007-10-24 12:34:47.000000000 +0900
+@@ -12,9 +12,10 @@
+     # formatted.  Since this formatter does not alter whitespace nodes, the
+     # results of formatting already formatted XML will be odd.
+     class Transitive < Default
+-      def initialize( indentation=2 )
++      def initialize( indentation=2, ie_hack=false )
+         @indentation = indentation
+         @level = 0
++        @ie_hack = ie_hack
+       end
+ 
+       protected
+@@ -29,6 +30,7 @@
+         output << "\n"
+         output << ' '*@level
+         if node.children.empty?
++          output << " " if @ie_hack
+           output << "/" 
+         else
+           output << ">"

@@ -1,0 +1,15 @@
+#!/bin/sh -e
+# /usr/lib/emacsen-common/packages/remove/ruby1.8-elisp
+
+FLAVOR=$1
+PACKAGE=ruby1.8-elisp
+
+if [ ${FLAVOR} != emacs ]; then
+#    if test -x /usr/sbin/install-info-altdir; then
+#        echo remove/${PACKAGE}: removing Info links for ${FLAVOR}
+#        install-info-altdir --quiet --remove --dirname=${FLAVOR} /usr/info/ruby1.8.info.gz
+#    fi
+
+    echo remove/${PACKAGE}: purging byte-compiled files for ${FLAVOR}
+    rm -rf /usr/share/${FLAVOR}/site-lisp/${PACKAGE}
+fi

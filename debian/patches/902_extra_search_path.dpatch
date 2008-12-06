@@ -1,0 +1,53 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 902_extra_search_path.dpatch by akira yamada <akira@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad ruby1.8-1.8.6~/configure.in ruby1.8-1.8.6/configure.in
+--- ruby1.8-1.8.6~/configure.in	2007-02-28 22:23:42.000000000 +0900
++++ ruby1.8-1.8.6/configure.in	2007-03-13 16:33:00.000000000 +0900
+@@ -1618,6 +1618,19 @@
+     AC_DEFINE_UNQUOTED(RUBY_SEARCH_PATH,"$search_path")
+ fi
+ 
++AC_ARG_WITH(extra-site-search-path,
++		[  --with-extra-site-search-path=DIR specify the extra site search path],
++		[extra_site_search_path=$withval])
++if test "$extra_site_search_path" != ""; then
++    AC_DEFINE_UNQUOTED(RUBY_EXTRA_SITE_SEARCH_PATH,"$extra_site_search_path")
++fi
++AC_ARG_WITH(extra-search-path,
++		[  --with--site-search-path=DIR specify the extra search path],
++		[extra_search_path=$withval])
++if test "$extra_search_path" != ""; then
++    AC_DEFINE_UNQUOTED(RUBY_EXTRA_SEARCH_PATH,"$extra_search_path")
++fi
++
+ AC_ARG_WITH(mantype,
+ 		[  --with-mantype=TYPE specify man page type; TYPE is one of man and doc],
+ 		[
+diff -urNad ruby1.8-1.8.6~/ruby.c ruby1.8-1.8.6/ruby.c
+--- ruby1.8-1.8.6.111~/ruby.c	2007-02-13 08:01:19.000000000 +0900
++++ ruby1.8-1.8.6.111/ruby.c	2007-03-13 16:33:11.000000000 +0900
+@@ -320,6 +320,9 @@
+     incpush(RUBY_RELATIVE(RUBY_SITE_THIN_ARCHLIB));
+ #endif
+     incpush(RUBY_RELATIVE(RUBY_SITE_ARCHLIB));
++#ifdef RUBY_EXTRA_SITE_SEARCH_PATH
++    ruby_incpush(RUBY_RELATIVE(RUBY_EXTRA_SITE_SEARCH_PATH));
++#endif
+     incpush(RUBY_RELATIVE(RUBY_SITE_LIB));
+ 
+     incpush(RUBY_RELATIVE(RUBY_LIB));
+@@ -327,6 +330,9 @@
+     incpush(RUBY_RELATIVE(RUBY_THIN_ARCHLIB));
+ #endif
+     incpush(RUBY_RELATIVE(RUBY_ARCHLIB));
++#ifdef RUBY_EXTRA_SEARCH_PATH
++    ruby_incpush(RUBY_RELATIVE(RUBY_EXTRA_SEARCH_PATH));
++#endif
+ 
+     if (rb_safe_level() == 0) {
+ 	incpush(".");

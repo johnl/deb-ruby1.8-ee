@@ -1,0 +1,175 @@
+Source: ruby1.8
+Section: interpreters
+Priority: optional
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: akira yamada <akira@debian.org>
+Uploaders: Fumitoshi UKAI <ukai@debian.or.jp>, Daigo Moriwaki <daigo@debian.org>
+Build-Depends: cdbs, debhelper (>= 5), autotools-dev, autoconf, m4, dpatch, patch, bison, binutils (>= 2.14.90.0.7), libgdbm-dev, libncurses5-dev, libreadline5-dev, tcl8.4-dev, tk8.4-dev, zlib1g-dev, libssl-dev (>= 0.9.6b), gcc-4.1 (>= 4.1.1-11) [m68k]
+Standards-Version: 3.7.2
+
+Package: ruby1.8
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: ruby1.8-examples, rdoc1.8, ri1.8
+Description: Interpreter of object-oriented scripting language Ruby 1.8
+ Ruby is the interpreted scripting language for quick and easy
+ object-oriented programming.  It has many features to process text
+ files and to do system management tasks (as in perl).  It is simple,
+ straight-forward, and extensible.
+ .
+ This package provides version 1.8 series of Ruby.
+ .
+ On Debian, Ruby 1.8 is provided as separate packages.  You can get
+ full Ruby 1.8 distribution by installing following packages.
+ .
+   ruby1.8 ruby1.8-dev ri1.8 rdoc1.8 irb1.8 ruby1.8-elisp
+   ruby1.8-examples libdbm-ruby1.8 libgdbm-ruby1.8 libtcltk-ruby1.8
+   libopenssl-ruby1.8 libreadline-ruby1.8
+
+Package: libruby1.8
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: libsdbm-ruby1.8, libdl-ruby1.8, libpty-ruby1.8, libbigdecimal-ruby1.8, libsyslog-ruby1.8, libstrscan-ruby1.8, libiconv-ruby1.8, libracc-runtime-ruby1.8, libdrb-ruby1.8, liberb-ruby1.8, libtest-unit-ruby1.8, librexml-ruby1.8, libxmlrpc-ruby1.8, libsoap-ruby1.8, libwebrick-ruby1.8, libyaml-ruby1.8, libzlib-ruby1.8, libcurses-ruby1.8, libopenssl-ruby1.8 (<< 1.8.6)
+Replaces: libsdbm-ruby1.8, libdl-ruby1.8, libpty-ruby1.8, libbigdecimal-ruby1.8, libsyslog-ruby1.8, libstrscan-ruby1.8, libiconv-ruby1.8, libracc-runtime-ruby1.8, libdrb-ruby1.8, liberb-ruby1.8, libtest-unit-ruby1.8, librexml-ruby1.8, libxmlrpc-ruby1.8, libsoap-ruby1.8, libwebrick-ruby1.8, libyaml-ruby1.8, libzlib-ruby1.8, libcurses-ruby1.8
+Provides: libsdbm-ruby1.8, libdl-ruby1.8, libpty-ruby1.8, libbigdecimal-ruby1.8, libsyslog-ruby1.8, libstrscan-ruby1.8, libiconv-ruby1.8, libracc-runtime-ruby1.8, libdrb-ruby1.8, liberb-ruby1.8, libtest-unit-ruby1.8, librexml-ruby1.8, libxmlrpc-ruby1.8, libsoap-ruby1.8, libwebrick-ruby1.8, libyaml-ruby1.8, libzlib-ruby1.8, libcurses-ruby1.8
+Description: Libraries necessary to run Ruby 1.8
+ Ruby is the interpreted scripting language for quick and easy
+ object-oriented programming.  It has many features to process text
+ files and to do system management tasks (as in perl).  It is simple,
+ straight-forward, and extensible.
+ .
+ This package includes the libruby, necessary to run Ruby 1.8.
+
+Package: libruby1.8-dbg
+Section: libdevel
+Priority: extra
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libruby1.8 (= ${binary:Version})
+Description: Debugging symbols for Ruby 1.8
+ Contains debugging symbols for libruby1.8.
+ .
+ This package is provided primarily to provide a backtrace with names
+ in a debugger, this makes it somewhat easier to interpret core
+ dumps.  Most people will not need this package.
+
+Package: ruby1.8-dev
+Section: devel
+Architecture: any
+Depends: libruby1.8 (= ${binary:Version})
+Recommends: ruby1.8 (= ${binary:Version})
+Description: Header files for compiling extension modules for the Ruby 1.8
+ Ruby is the interpreted scripting language for quick and easy
+ object-oriented programming.  It has many features to process text
+ files and to do system management tasks (as in perl).  It is simple,
+ straight-forward, and extensible.
+ .
+ This package contains the header files, necessary to make extension
+ library for Ruby 1.8.
+
+Package: libdbm-ruby1.8
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: DBM interface for Ruby 1.8
+ This package provides an extension library "dbm" for Ruby 1.8.  The
+ library makes Ruby programs to be able to access to a DBM file.
+ .
+ On Debian, the extension library is built with GDBM.
+
+Package: libgdbm-ruby1.8
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: GDBM interface for Ruby 1.8
+ This package provides an extension library "gdbm" for Ruby 1.8.  The
+ library makes Ruby 1.8 programs to be able to access to a DBM file.
+
+Package: libreadline-ruby1.8
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Readline interface for Ruby 1.8
+ This package provides an extension library "readline" for Ruby 1.8.
+ The library makes Ruby programs to be able to use functions (line
+ editing, history, completion, etc.) of the readline library(3).
+
+Package: libtcltk-ruby1.8
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: libtk-ruby1.8
+Replaces: libtk-ruby1.8
+Provides: libtk-ruby1.8
+Description: Tcl/Tk interface for Ruby 1.8
+ tcltklib is an extension library for Ruby 1.8.  It makes Ruby 1.8
+ programs to be able to use low level interface for the Tcl/Tk.
+
+Package: libopenssl-ruby1.8
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Replaces: libruby1.8 (= 1.8.3-2), libruby1.8 (<< 1.8.6)
+Description: OpenSSL interface for Ruby 1.8
+ Ruby/OpenSSL makes Ruby to be able to use OpenSSL. It includes HTTP
+ and TELNET protocols' SSL/TLS support.
+ .
+ This package provides Ruby/OpenSSL for Ruby 1.8.
+
+Package: ruby1.8-examples
+Architecture: all
+Suggests: ruby1.8 (>= ${source:Version})
+Description: Examples for Ruby 1.8
+ This package provides example programs about Ruby 1.8.
+ .
+ Ruby is the interpreted scripting language for quick and easy
+ object-oriented programming.  It has many features to process text
+ files and to do system management tasks (as in perl).  It is simple,
+ straight-forward, and extensible.
+
+Package: ruby1.8-elisp
+Architecture: all
+Depends: emacs | emacsen
+Suggests: ruby1.8 (>= ${source:Version}), irb1.8 (>= ${source:Version})
+Conflicts: ruby-elisp (<< 1.8), ruby1.6-elisp, ruby1.7-elisp, ruby-beta-elisp
+Description: ruby-mode for Emacsen
+ This package provides major-mode for editing Ruby scripts and some
+ emacs-lisp programs for Ruby programmers.
+
+Package: ri1.8
+Priority: optional
+Section: interpreters
+Architecture: all
+Depends: ruby1.8, rdoc1.8 (= ${source:Version})
+Description: Ruby Interactive reference (for Ruby 1.8)
+ ri is a command line tool that displays descriptions of built-in Ruby
+ methods, classes, and modules. For methods, it shows you the calling
+ sequence and a description. For classes and modules, it shows a
+ synopsis along with a list of the methods the class or module
+ implements.
+ .
+ This package provides ri command and descriptions about Ruby 1.8.
+
+Package: rdoc1.8
+Section: doc
+Architecture: all
+Depends: ruby1.8 (>= ${source:Version}), irb1.8 (>= ${source:Version}), libruby1.8 (>= ${source:Version})
+Suggests: graphviz
+Replaces: rdoc (<= 0.9.0-5)
+Conflicts: rdoc (<= 0.9.0-5)
+Description: Generate documentation from Ruby source files (for Ruby 1.8)
+ RDoc - Documentation from Ruby Source Files:
+  * Generates structured HTML and XML documentation from Ruby source
+    and C extensions.
+  * Automatically extracts class, module, method, and attribute
+    definitions.  These can be annotated using inline comments.
+  * Analyzes method visibility.
+  * Handles aliasing.
+  * Uses non-intrusive and implicit markup in the comments. Readers of
+    the original source needn't know that it is marked up at all.
+ .
+ This package provides the RDoc tool which uses Ruby 1.8.
+
+Package: irb1.8
+Architecture: all
+Depends: ruby1.8 (>= ${source:Version}), libreadline-ruby1.8 (>= ${source:Version})
+Description: Interactive Ruby (for Ruby 1.8)
+ The irb is acronym for Interactive RuBy.  It evaluates Ruby expression from
+ the terminal. 
+ .
+ This package provides the irb which uses Ruby 1.8.
