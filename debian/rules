@@ -203,8 +203,6 @@ binary-install/ruby$(ruby_ver)-dev::
 	    for h in *.h; do \
 		echo usr/lib/ruby/$(ruby_ver)/$(arch_name)/$$h; \
 	    done) | xargs dh_movefiles -p$(cdbs_curpkg)
-	sed -e 's/@@ruby_ee_ver@@/$(ruby_ee_ver)/' $(CURDIR)/debian/ree-version > $(CURDIR)/debian/tmp/usr/bin/ree-version
-	chmod 0755 $(CURDIR)/debian/tmp/usr/bin/ree-version
 
 binary-install/ruby$(ruby_ver)::
 	dh_movefiles -p$(cdbs_curpkg) \
@@ -212,6 +210,8 @@ binary-install/ruby$(ruby_ver)::
 	    usr/bin/erb$(ruby_ver) \
 	    usr/bin/testrb$(ruby_ver) \
 	    usr/share/man/man1/ruby$(ruby_ver).1
+	sed -e 's/@@ruby_ee_ver@@/$(ruby_ee_ver)/' $(CURDIR)/debian/ree-version > $(CURDIR)/debian/tmp/usr/bin/ree-version
+	chmod 0755 $(CURDIR)/debian/tmp/usr/bin/ree-version
 
 binary-post-install/ruby$(ruby_ver)-elisp::
 	install -m444 $(DEB_SRCDIR)/misc/*.el \
