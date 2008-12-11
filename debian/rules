@@ -37,13 +37,13 @@ endif
 
 ifeq ($(DEB_BUILD_GNU_CPU),i386)
 	DEB_CONFIGURE_USER_FLAGS += --enable-frame-address
-	LIBS += -ltcmalloc_minimal
+	LDFLAGS += -ltcmalloc_minimal
 endif
 ifneq (,$(filter $(DEB_BUILD_GNU_CPU),i486 i586 i686))
 	DEB_CONFIGURE_USER_FLAGS += --enable-frame-address
 	DEB_CONFIGURE_USER_FLAGS += --with-extra-site-search-path='/usr/local/lib/site_ruby/$(ruby_ver)/i386-linux'
 	DEB_CONFIGURE_USER_FLAGS += --with-extra-search-path='/usr/lib/ruby/$(ruby_ver)/i386-linux'
-	LIBS += -ltcmalloc_minimal
+	LDFLAGS += -ltcmalloc_minimal
 endif
 DEB_CONFIGURE_USER_FLAGS += --program-suffix=$(ruby_ver)
 DEB_CONFIGURE_USER_FLAGS += --enable-pthread
