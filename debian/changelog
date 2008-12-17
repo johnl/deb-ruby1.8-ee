@@ -1,4 +1,4 @@
-ruby1.8 (1.8.6.20081205-0bbox2) hardy; urgency=low
+ruby1.8 (1.8.6.20081205-0bbox6) hardy; urgency=low
 
   * Added libgoogle-perftools-dev dependency and build flags
 
