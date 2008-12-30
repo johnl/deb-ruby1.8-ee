@@ -193,6 +193,9 @@ binary-install/libruby$(ruby_ver):: $(patsubst %,binary-install/%,$(filter-out l
 		done; \
 		rmdir "$(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/$$dir" 2>/dev/null || :; \
 	    done
+	mkdir -p $(CURDIR)/debian/$(cdbs_curpkg)/usr/bin
+	sed -e 's/@@ruby_ee_ver@@/$(ruby_ee_ver)/' $(CURDIR)/debian/ree-version > $(CURDIR)/debian/$(cdbs_curpkg)/usr/bin/ree-version
+	chmod 0755 $(CURDIR)/debian/$(cdbs_curpkg)/usr/bin/ree-version
 
 binary-install/ruby$(ruby_ver)-dev::
 	dh_movefiles -p$(cdbs_curpkg) \
@@ -210,8 +213,6 @@ binary-install/ruby$(ruby_ver)::
 	    usr/bin/erb$(ruby_ver) \
 	    usr/bin/testrb$(ruby_ver) \
 	    usr/share/man/man1/ruby$(ruby_ver).1
-	sed -e 's/@@ruby_ee_ver@@/$(ruby_ee_ver)/' $(CURDIR)/debian/ree-version > $(CURDIR)/debian/tmp/usr/bin/ree-version
-	chmod 0755 $(CURDIR)/debian/tmp/usr/bin/ree-version
 
 binary-post-install/ruby$(ruby_ver)-elisp::
 	install -m444 $(DEB_SRCDIR)/misc/*.el \
