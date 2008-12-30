@@ -56,7 +56,7 @@ Description: Debugging symbols for Ruby 1.8
 Package: ruby1.8-dev
 Section: devel
 Architecture: any
-Depends: libruby1.8 (= ${binary:Version})
+Depends: libruby1.8 (= ${binary:Version}), libgoogle-perftools-dev (>= 0.98)
 Recommends: ruby1.8 (= ${binary:Version})
 Description: Header files for compiling extension modules for the Ruby 1.8
  Ruby is the interpreted scripting language for quick and easy
