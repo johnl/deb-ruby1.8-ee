@@ -1,3 +1,10 @@
+ruby1.8 (1.8.6.20081205-0bbox7) hardy; urgency=low
+
+  * Added ruby1.8-dev dependency on libgoogle-perftools-dev
+  * Fixed ree-version utility
+
+ -- John Leach <john@brightbox.co.uk>  Tue, 30 Dec 2008 13:34:19 +0000
+
 ruby1.8 (1.8.6.20081205-0bbox6) hardy; urgency=low
 
   * Added libgoogle-perftools-dev dependency and build flags
