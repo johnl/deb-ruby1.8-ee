@@ -11,7 +11,8 @@ class Installer
 	REQUIRED_DEPENDENCIES = [
 		Dependencies::CC,
 		Dependencies::Zlib_Dev,
-		Dependencies::OpenSSL_Dev
+		Dependencies::OpenSSL_Dev,
+		Dependencies::Readline_Dev
 	]
 	
 	def start(options = {})
@@ -32,13 +33,6 @@ class Installer
 		
 		steps = []
 		if tcmalloc_supported?
-			if libunwind_needed?
-				steps += [
-				  :configure_libunwind,
-				  :compile_libunwind,
-				  :install_libunwind
-				]
-			end
 			steps += [
 			  :configure_tcmalloc,
 			  :compile_tcmalloc,
@@ -162,45 +156,33 @@ private
 			@destdir += "/"
 		end
 		
-		ENV['C_INCLUDE_PATH'] = "#{@destdir}#{@prefix}/include:/usr/include:/usr/local/include:#{ENV['C_INCLUDE_PATH']}"
-		ENV['CPLUS_INCLUDE_PATH'] = "#{@destdir}#{@prefix}/include:/usr/include:/usr/local/include:#{ENV['CPLUS_INCLUDE_PATH']}"
+		ENV['CPATH'] = "#{@destdir}#{@prefix}/include:/usr/include:/usr/local/include:#{ENV['CPATH']}"
 		ENV['LD_LIBRARY_PATH'] = "#{@destdir}#{@prefix}/lib:#{ENV['LD_LIBRARY_PATH']}"
 		ENV['DYLD_LIBRARY_PATH'] = "#{@destdir}#{@prefix}/lib:#{ENV['DYLD_LIBRARY_PATH']}"
 	end
 	
-	def configure_libunwind
-		return configure_autoconf_package('source/vendor/libunwind-0.98.6',
-			'libunwind')
-	end
-	
-	def compile_libunwind
-		Dir.chdir('source/vendor/libunwind-0.98.6') do
-			return sh("make")
-		end
-	end
-	
-	def install_libunwind
-		return install_autoconf_package('source/vendor/libunwind-0.98.6',
-		  'libunwind')
-	end
-	
 	def configure_tcmalloc
-		return configure_autoconf_package('source/vendor/google-perftools-0.98',
+		return configure_autoconf_package('source/vendor/google-perftools-0.99.2',
 			'the memory allocator for Ruby Enterprise Edition',
 			'--disable-dependency-tracking')
 	end
 	
 	def compile_tcmalloc
-		Dir.chdir('source/vendor/google-perftools-0.98') do
+		Dir.chdir('source/vendor/google-perftools-0.99.2') do
 			return sh("make libtcmalloc_minimal.la")
 		end
 	end
 	
 	def install_tcmalloc
-		return install_autoconf_package('source/vendor/google-perftools-0.98',
+		return install_autoconf_package('source/vendor/google-perftools-0.99.2',
 		  'the memory allocator for Ruby Enterprise Edition') do
 			sh("mkdir", "-p", "#{@destdir}#{@prefix}/lib") &&
-			sh("cp .libs/libtcmalloc_minimal*.#{PlatformInfo::LIBEXT}* '#{@destdir}#{@prefix}/lib/'")
+			# Remove existing .so files so that the copy operation doesn't
+			# overwrite the existing files in-place. Overwriting shared
+			# libraries in-place can cause existing processes that use
+			# those libraries to crash.
+			sh("rm -f '#{@destdir}#{@prefix}/lib'/libtcmalloc_minimal*.#{PlatformInfo::LIBEXT}*") &&
+			sh("cp -f .libs/libtcmalloc_minimal*.#{PlatformInfo::LIBEXT}* '#{@destdir}#{@prefix}/lib/'")
 		end
 	end
 	
@@ -209,8 +191,7 @@ private
 	end
 	
 	def compile_system_allocator
-		if tcmalloc_supported? &&
-		   platform_uses_two_level_namespace_for_dynamic_libraries?
+		if platform_uses_two_level_namespace_for_dynamic_libraries?
 			Dir.chdir("source") do
 				@using_system_allocator_library = true
 				# On platforms that use a two-level symbol namespace for
@@ -230,24 +211,22 @@ private
 			# No idea why, but sometimes 'make' fails unless we do this.
 			sh("mkdir -p .ext/common")
 			
-			if tcmalloc_supported?
-				makefile = File.read('Makefile')
-				if makefile !~ /\$\(PRELIBS\)/
-					makefile.sub!(/^LIBS = (.*)$/, 'LIBS = $(PRELIBS) \1')
-					File.open('Makefile', 'w') do |f|
-						f.write(makefile)
-					end
+			makefile = File.read('Makefile')
+			if makefile !~ /\$\(PRELIBS\)/
+				makefile.sub!(/^LIBS = (.*)$/, 'LIBS = $(PRELIBS) \1')
+				File.open('Makefile', 'w') do |f|
+					f.write(makefile)
 				end
-				
-				prelibs = "-Wl,-rpath,#{@prefix}/lib -L#{@destdir}#{@prefix}/lib -ltcmalloc_minimal"
-				if platform_uses_two_level_namespace_for_dynamic_libraries?
-					prelibs << " -lsystem_allocator"
-				end
-				
-				return sh("make PRELIBS='#{prelibs}'")
-			else
-				return sh("make")
 			end
+			
+			prelibs = "-Wl,-rpath,#{@prefix}/lib -L#{@destdir}#{@prefix}/lib"
+			if tcmalloc_supported?
+				prelibs << " -ltcmalloc_minimal "
+			end
+			if platform_uses_two_level_namespace_for_dynamic_libraries?
+				prelibs << " -lsystem_allocator"
+			end
+			return sh("make PRELIBS='#{prelibs}'")
 		end
 	end
 	
@@ -310,7 +289,9 @@ private
 			if !sh("#{@destdir}#{@prefix}/bin/ruby", "extconf.rb") ||
 			   !sh("make clean") ||
 			   !sh("make") ||
-			   !sh("make install DESTDIR='#{@destdir}'")
+			   # For some reason DESTDIR is not necessary here;
+			   # not sure why.
+			   !sh("make install")
 				puts "*** Cannot install the iconv extension"
 				return false
 			end
@@ -330,7 +311,7 @@ private
 			mysql_gem = "mysql"
 		end
 		
-		gem_names = ["passenger", "rails", "fastthread", "rack", mysql_gem, "sqlite3-ruby", "postgres"]
+		gem_names = ["passenger", "rake", "rails", "fastthread", "rack", mysql_gem, "sqlite3-ruby", "postgres"]
 		if @install_extra_gems
 			gem_names += ["rails --version 2.0.2", "rails --version 1.2.6",
 				"rails --version 1.1.6", "mongrel", "hpricot", "thin",
@@ -341,7 +322,7 @@ private
 		if sh("#{gem} sources --update")
 			gem_names.each do |gem_name|
 				color_puts "\n<b>Installing #{gem_name}...</b>"
-				if !sh("#{gem} install --no-rdoc --no-ri --no-update-sources --backtrace #{gem_name}")
+				if !sh("#{gem} install -r --no-rdoc --no-ri --no-update-sources --backtrace #{gem_name}")
 					failed_gems << gem_name
 				end
 			end
@@ -464,17 +445,8 @@ private
 	
 	def tcmalloc_supported?
 		return @use_tcmalloc &&
-		       !platform_is_64_bit? &&
-		       RUBY_PLATFORM !~ /solaris/
-	end
-	
-	def libunwind_needed?
-		return false
-	end
-	
-	def platform_is_64_bit?
-		machine = `uname -m`.strip
-		return machine == "x86_64"
+		       RUBY_PLATFORM !~ /solaris/ &&
+		       RUBY_PLATFORM !~ /openbsd/
 	end
 	
 	def platform_uses_two_level_namespace_for_dynamic_libraries?
@@ -500,6 +472,9 @@ private
 			# computer the REE tarball was created on.
 			if Dir["*.o"].empty?
 				system("touch -r / *")
+				if File.directory?("m4")
+					system("touch -r / m4/*")
+				end
 			end
 			
 			if @prefix_changed || !File.exist?("Makefile")
