@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
 
 ruby_ver = 1.8
-tcltk_ver = 8.4
 ruby_ee_ver = 20090113
 
 arch_name = $(subst linux-gnu,linux-,$(patsubst %linux-gnu,%linux,$(DEB_BUILD_GNU_TYPE)))
@@ -54,9 +53,6 @@ DEB_CONFIGURE_USER_FLAGS += --disable-install-doc
 DEB_CONFIGURE_USER_FLAGS += --with-sitedir='/usr/local/lib/site_ruby'
 DEB_CONFIGURE_USER_FLAGS += --with-default-kcode=none
 DEB_CONFIGURE_USER_FLAGS += --with-dbm-type=gdbm_compat
-DEB_CONFIGURE_USER_FLAGS += --with-tklib=tk$(tcltk_ver)
-DEB_CONFIGURE_USER_FLAGS += --with-tcllib=tcl$(tcltk_ver)
-DEB_CONFIGURE_USER_FLAGS += --with-tcl-include=/usr/include/tcl$(tcltk_ver)
 DEB_CONFIGURE_USER_FLAGS += --with-bundled-sha1
 DEB_CONFIGURE_USER_FLAGS += --with-bundled-md5
 DEB_CONFIGURE_USER_FLAGS += --with-bundled-rmd160
@@ -87,9 +83,6 @@ DEB_INSTALL_MANPAGES_irb$(ruby_ver) += debian/irb$(ruby_ver).1
 DEB_INSTALL_DOCS_libgdbm-ruby$(ruby_ver) += $(DEB_SRCDIR)/ext/gdbm/README*
 
 DEB_INSTALL_DOCS_libreadline-ruby$(ruby_ver) += $(DEB_SRCDIR)/ext/readline/README*
-
-DEB_INSTALL_DOCS_libtcltk-ruby$(ruby_ver) += $(DEB_SRCDIR)/ext/tk/README*
-DEB_INSTALL_DOCS_libtcltk-ruby$(ruby_ver) += $(DEB_SRCDIR)/ext/tk/MANUAL*
 
 DEB_INSTALL_DIRS_ruby$(ruby_ver) += $(bin_dir)
 DEB_INSTALL_DIRS_ruby$(ruby_ver) += $(man_dir)
@@ -136,30 +129,6 @@ binary-install/libopenssl-ruby$(ruby_ver)::
 	(cd $(DEB_SRCDIR)/sample/openssl && \
 	 tar cf - .) | \
 	  (cd $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/examples && tar xf -)
-
-binary-install/libtcltk-ruby$(ruby_ver)::
-	dh_movefiles -p$(cdbs_curpkg) \
-	    $(ruby_archdir)/tcltklib.so \
-	    $(ruby_archdir)/tkutil.so
-	sh $(CURDIR)/debian/extfixup_rubylibs.sh $(cdbs_curpkg) \
-	    $(DEB_SRCDIR)/ext/tk
-
-	install -d \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/examples
-	(cd $(DEB_SRCDIR)/ext/tk/sample && \
-	 tar cf - .) | \
-	  (cd $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/examples && tar xf -)
-	mv $(CURDIR)/debian/tmp/usr/lib/ruby/$(ruby_ver)/tkextlib/SUPPORT_STATUS \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/
-	install \
-	    $(DEB_SRCDIR)/ext/tk/lib/README \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/README.lib
-	install \
-	    $(DEB_SRCDIR)/ext/tk/lib/tkextlib/tcllib/README \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/README.tcllib
-	install \
-	    $(DEB_SRCDIR)/ext/tk/lib/tkextlib/tkimg/README \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/README.tkimg
 
 binary-install/libruby$(ruby_ver):: $(patsubst %,binary-install/%,$(filter-out libruby$(ruby_ver),$(DEB_PACKAGES)))
 	install -d $(CURDIR)/debian/$(cdbs_curpkg)/$(ruby_archdir)

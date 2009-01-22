@@ -3,7 +3,7 @@ Section: interpreters
 Priority: optional
 Maintainer: John Leach <john@brightbox.co.uk>
 XSBC-Original-Maintainer: akira yamada <akira@debian.org>
-Build-Depends: cdbs, debhelper (>= 5), autotools-dev, autoconf, m4, dpatch, patch, bison, binutils (>= 2.14.90.0.7), libgdbm-dev, libncurses5-dev, libreadline5-dev, tcl8.4-dev, tk8.4-dev, zlib1g-dev, libssl-dev (>= 0.9.6b), gcc-4.1 (>= 4.1.1-11) [m68k], libgoogle-perftools-dev
+Build-Depends: cdbs, debhelper (>= 5), autotools-dev, autoconf, m4, dpatch, patch, bison, binutils (>= 2.14.90.0.7), libgdbm-dev, libncurses5-dev, libreadline5-dev, zlib1g-dev, libssl-dev (>= 0.9.6b), gcc-4.1 (>= 4.1.1-11) [m68k], libgoogle-perftools-dev
 Standards-Version: 3.7.2
 
 Package: ruby1.8
@@ -23,7 +23,7 @@ Description: Interpreter of object-oriented scripting language Ruby 1.8
  full Ruby 1.8 distribution by installing following packages.
  .
    ruby1.8 ruby1.8-dev ri1.8 rdoc1.8 irb1.8 ruby1.8-elisp
-   ruby1.8-examples libdbm-ruby1.8 libgdbm-ruby1.8 libtcltk-ruby1.8
+   ruby1.8-examples libdbm-ruby1.8 libgdbm-ruby1.8 
    libopenssl-ruby1.8 libreadline-ruby1.8
 
 Package: libruby1.8
@@ -90,16 +90,6 @@ Description: Readline interface for Ruby 1.8
  This package provides an extension library "readline" for Ruby 1.8.
  The library makes Ruby programs to be able to use functions (line
  editing, history, completion, etc.) of the readline library(3).
-
-Package: libtcltk-ruby1.8
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: libtk-ruby1.8
-Replaces: libtk-ruby1.8
-Provides: libtk-ruby1.8
-Description: Tcl/Tk interface for Ruby 1.8
- tcltklib is an extension library for Ruby 1.8.  It makes Ruby 1.8
- programs to be able to use low level interface for the Tcl/Tk.
 
 Package: libopenssl-ruby1.8
 Architecture: any
