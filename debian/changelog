@@ -1,3 +1,10 @@
+ruby1.8 (1.8.6.20090113-0bbox1) hardy; urgency=low
+
+  * New Upstream Version
+  * Don't compile with pthreads
+
+ -- John Leach <john@brightbox.co.uk>  Thu, 22 Jan 2009 16:04:43 +0000
+
 ruby1.8 (1.8.6.20081205-0bbox7) hardy; urgency=low
 
   * Added ruby1.8-dev dependency on libgoogle-perftools-dev

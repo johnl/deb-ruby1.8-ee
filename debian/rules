@@ -2,7 +2,7 @@
 
 ruby_ver = 1.8
 tcltk_ver = 8.4
-ruby_ee_ver = 20081205
+ruby_ee_ver = 20090113
 
 arch_name = $(subst linux-gnu,linux-,$(patsubst %linux-gnu,%linux,$(DEB_BUILD_GNU_TYPE)))
 ruby_libdir = usr/lib/ruby/$(ruby_ver)
@@ -46,7 +46,6 @@ ifneq (,$(filter $(DEB_BUILD_GNU_CPU),i486 i586 i686))
 	LDFLAGS += -ltcmalloc_minimal
 endif
 DEB_CONFIGURE_USER_FLAGS += --program-suffix=$(ruby_ver)
-DEB_CONFIGURE_USER_FLAGS += --enable-pthread
 DEB_CONFIGURE_USER_FLAGS += --enable-shared
 DEB_CONFIGURE_USER_FLAGS += --enable-ipv6
 DEB_CONFIGURE_USER_FLAGS += --with-lookup-order-hack=INET
