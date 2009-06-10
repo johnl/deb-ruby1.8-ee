@@ -8,9 +8,15 @@ Ruby Enterprise Edition (REE) is a server-oriented distribution of the official 
 - The ability to tweak garbage collector settings for maximum server performance.
 - The ability to inspect the garbage collector's state and the object heap state, for debugging purposes.
 - The ability to obtain backtraces for all running threads, making it easier for one to debug multithreaded applications.
+- Thread scheduler bug fixes.
+- Performance enhancements for Sparc machines.
 
 Some of these features are gathered from third party Ruby patches:
-RailsBench, RubyProf, caller_for_all_threads.
+link:http://railsbench.rubyforge.org/[RailsBench],
+http://rubyforge.org/tracker/download.php/426/1700/11497/2087/ruby-track-alloc.patch[Sylvain Joyeux's object allocation patch],
+link:http://ph7spot.com/articles/caller_for_all_threads[caller_for_all_threads],
+Darryl Gove's and Miriam Blatt's link:http://blogs.sun.com/d/entry/ruby_performance_gains_on_sparc[Sparc optimization patches],
+Joe Damato's and Aman Gupta's http://timetobleed.com/ruby-threading-bugfix-small-fix-goes-a-long-way/[SIGVTALRM patch].
 
 
 === Installation via Debian package or source tarball
@@ -77,7 +83,23 @@ tar xzvf ruby-enterprise-x.x.x.tar.gz
 
 A directory called 'ruby-enterprise-x.x.x' will now appear.
 
-==== Step 2: Install tcmalloc
+==== Step 2: Decide the prefix you want to install REE to
+
+Please decide on a prefix to install REE to, and put this directory name into
+the `PREFIX` environment variable. We'll need this value later in these
+instructions.
+
+For example, if you want to install REE into /opt/ruby-enterprise, then run:
+
+-------------------------------------
+PREFIX=/opt/ruby-enterprise
+-------------------------------------
+
+Please note that the rest of this document assumes that REE is installed into
+'/opt/ruby-enterprise'. If you installed REE into a different directory then just
+replace '/opt/ruby-enterprise' with whatever the real prefix is.
+
+==== Step 3: Install tcmalloc
 Tcmalloc is a memory allocator which is usually more efficient than the
 platform's native memory allocator. REE doesn't require tcmalloc, but it will
 work better if tcmalloc is installed.
@@ -90,15 +112,14 @@ cd ruby-enterprise-x.x.x/source/vendor/google-perftools-*
 make libtcmalloc_minimal.la
 --------------------------
 
-where '$PREFIX' is the prefix you want to install tcmalloc to. If compilation
-fails, then skip to step 3. REE will work fine without tcmalloc.
+If compilation fails, then skip to step 3. REE will work fine without tcmalloc.
 
 After compilation, install tcmalloc as follows:
 
 --------------------------
 sudo mkdir -p $PREFIX/lib
 sudo rm -f $PREFIX/lib/libtcmalloc_minimal*.so*
-sudo cp -pf .libs/libtcmalloc_minimal*.so* $PREFIX/lib/
+sudo cp -Rpf .libs/libtcmalloc_minimal*.so* $PREFIX/lib/
 --------------------------
 
 .MacOS X note
@@ -110,7 +131,7 @@ NOTE: The reason why we don't instruct you to type 'make' and 'make install'
       platforms. The above instructions are a little bit more complex, but they
       work on all platforms where tcmalloc is supported.
 
-==== Step 3: Configure REE
+==== Step 4: Configure REE
 
 Change the current working directory to 'ruby-enterprise-x.x.x/source'. If
 you were previously in the google-perftools directory, then type:
@@ -125,18 +146,16 @@ Run the configure script:
 ./configure --prefix=$PREFIX
 --------------------------
 
-where '$PREFIX' is the prefix you want to install tcmalloc to.
+==== Step 5: Compiling and installing the system_allocator library (MacOS X only)
 
-==== Step 4: Compiling and installing the system_allocator library (MacOS X only)
-
-If you are on MacOS X, then compile and install the 'sytem_allocator' library:
+If you are on MacOS X, then compile and install the 'system_allocator' library:
 
 --------------------------
 gcc -dynamiclib system_allocator.c -install_name @rpath/libsystem_allocator.dylib -o libsystem_allocator.dylib
-sudo install source/libsystem_allocator.dylib $PREFIX/lib/
+sudo install libsystem_allocator.dylib $PREFIX/lib/
 --------------------------
 
-==== Step 5: compiling and installing REE
+==== Step 6: compiling and installing REE
 
 Open 'Makefile'. Search for a line which starts with:
 
@@ -361,14 +380,35 @@ The next time Ruby needs to allocate a new heap, that heap will have
 	`RUBY_HEAP_SLOTS_GROWTH_FACTOR` parameters. The default value is '4096'.
 
 The best settings varies from application to application. You should try
-experimenting with the values. 37signals uses the following settings in
-production:
+experimenting with the values.
+
+link:http://www.37signals.com[37signals] uses the following settings in production:
 
 ----------------------------------
 RUBY_HEAP_MIN_SLOTS=600000
 RUBY_GC_MALLOC_LIMIT=59000000
 RUBY_HEAP_FREE_MIN=100000
 ----------------------------------
+
+link:http://www.twitter.com[Twitter] uses the following settings in production:
+
+----------------------------------
+RUBY_HEAP_MIN_SLOTS=500000
+RUBY_HEAP_SLOTS_INCREMENT=250000
+RUBY_HEAP_SLOTS_GROWTH_FACTOR=1
+RUBY_GC_MALLOC_LIMIT=50000000
+----------------------------------
+
+Twitter's settings mean:
+
+ * Start with enough memory to hold the application (Ruby's default is very low,
+   lower than what a Rails application typically needs).
+ * Increase it linearly if you need more (Ruby's default is exponential increase).
+ * Only garbage-collect every 50 million `malloc` calls (Ruby's default is 6x smaller).
+
+Twitter link:http://blog.evanweaver.com/articles/2009/04/09/ruby-gc-tuning/[claims]
+that these settings give them about 20% to 40% average performance improvement,
+at the cost of slightly higher peak memory usage.
 
 == Garbage collector statistics
 One can inspect various garbage collector statistics by calling certain methods.
@@ -536,3 +576,34 @@ signal to a Phusion Passenger backend process, it will print the backtrace of
 all threads to the Apache error log. This feature is also documented in the
 Phusion Passenger users guide.
 
+
+== RubyCocoa compatibility and `--enable-shared`
+
+In order to use RubyCocoa, the Ruby interpreter must be compiled with
+`--enable-shared`. By default, Ruby Enterprise Edition's interpreter is not compiled
+with `--enable-shared`. You can compile the Ruby Enterprise Edition interpreter
+with this flag by passing `-c --enable-shared` to its installer, like this:
+
+---------------------------------------------------------
+./ruby-enterprise-X.X.X/installer -c --enable-shared
+---------------------------------------------------------
+
+Please note that enabling `--enable-shared` will make the Ruby interpreter about
+20% slower. It is for this reason that we don't recommend enabling `--enable-shared`
+on server environments, although it's fine for desktop environments.
+
+== Tcl/Tk compatibility and `--enable-pthread`
+
+In order to use Tcl/Tk with threading support, the Ruby interpreter must be compiled
+with `--enable-pthread`. By default, Ruby Enterprise Edition's interpreter is not
+compiled with `--enable-pthread`. You can compile the Ruby Enterprise Edition
+interpreter with this flag by passing `-c --enable-pthread` to its installer,
+like this:
+
+---------------------------------------------------------
+./ruby-enterprise-X.X.X/installer -c --enable-pthread
+---------------------------------------------------------
+
+Please note that enabling `--enable-pthread` will make the Ruby interpreter about
+50% slower. It is for this reason that we don't recommend enabling `--enable-shared`
+on server environments, although it's fine for desktop environments.
