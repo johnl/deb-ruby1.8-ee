@@ -1030,7 +1030,7 @@ static struct tag *prot_tag;
 #define PROT_LAMBDA INT2FIX(2)	/* 5 */
 #define PROT_YIELD  INT2FIX(3)	/* 7 */
 
-#define EXEC_TAG()    (FLUSH_REGISTER_WINDOWS, ruby_setjmp(((void)0), prot_tag->buf))
+#define EXEC_TAG()    (EXEC_FLUSH_REGISTER_WINDOWS, ruby_setjmp(((void)0), prot_tag->buf))
 
 #define JUMP_TAG(st) do {		\
     ruby_frame = prot_tag->frame;	\
@@ -10382,7 +10382,7 @@ rb_thread_switch(n)
 }
 
 #define THREAD_SAVE_CONTEXT(th) \
-    (rb_thread_switch((FLUSH_REGISTER_WINDOWS, ruby_setjmp(rb_thread_save_context(th), (th)->context))))
+    (rb_thread_switch((SWITCH_FLUSH_REGISTER_WINDOWS, ruby_setjmp(rb_thread_save_context(th), (th)->context))))
 
 NORETURN(static void rb_thread_restore_context _((rb_thread_t,int)));
 NORETURN(NOINLINE(static void rb_thread_restore_context_0(rb_thread_t,int,void*)));
@@ -10530,6 +10530,8 @@ rb_thread_die(th)
     th->stk_ptr = 0;
 }
 
+static int thread_init;
+
 static void
 rb_thread_remove(th)
     rb_thread_t th;
@@ -10540,6 +10542,15 @@ rb_thread_remove(th)
     rb_thread_die(th);
     th->prev->next = th->next;
     th->next->prev = th->prev;
+
+#if defined(HAVE_SETITIMER)
+    /* if this is the last ruby thread, stop timer signals */
+    if (th->next == th->prev && th->next == main_thread) {
+	rb_thread_stop_timer();
+	/* set thread_init to 0 here because process.c calls stop/start_timer across fork/exec */
+	thread_init = 0;
+    }
+#endif
 }
 
 static int
@@ -11837,8 +11848,6 @@ rb_thread_alloc(klass)
     }
     return th;
 }
-
-static int thread_init;
 
 #if defined(_THREAD_SAFE)
 static void

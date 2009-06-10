@@ -10,6 +10,7 @@ class Installer
 	EMM_RUBY_WEBSITE = "http://www.rubyenterpriseedition.com"
 	REQUIRED_DEPENDENCIES = [
 		Dependencies::CC,
+		Dependencies::CXX,
 		Dependencies::Zlib_Dev,
 		Dependencies::OpenSSL_Dev,
 		Dependencies::Readline_Dev
@@ -19,9 +20,12 @@ class Installer
 		Dir.chdir(ROOT)
 		@version = File.read("version.txt")
 		@auto_install_prefix = options[:prefix]
-		@destdir = options[:destdir]
-		@install_extra_gems = options[:extra]
+		@destdir = strip_trailing_slashes(options[:destdir])
+		@install_useful_gems = options[:install_useful_gems]
 		@use_tcmalloc = options[:tcmalloc]
+		if !options[:extra_configure_args].empty?
+			@extra_configure_args = options[:extra_configure_args].join(" ")
+		end
 		
 		if RUBY_PLATFORM =~ /darwin/
 			ENV['PATH'] = "#{ENV['PATH']}:/usr/local/mysql/bin"
@@ -133,6 +137,19 @@ private
 		end
 	end
 	
+	def strip_trailing_slashes(data)
+		if data.nil?
+			return nil
+		else
+			result = data.sub(/\/+$/, '')
+			if result.empty? && !data.empty?
+				return '/'
+			else
+				return result
+			end
+		end
+	end
+	
 	def ask_installation_prefix
 		line
 		color_puts "<banner>Target directory</banner>"
@@ -147,6 +164,7 @@ private
 			puts
 			@prefix = query_directory(@old_prefix || "/opt/ruby-enterprise-#{@version}")
 		end
+		@prefix = strip_trailing_slashes(@prefix)
 		@prefix_changed = @prefix != @old_prefix
 		File.open("source/.prefix.txt", "w") do |f|
 			f.write(@prefix)
@@ -162,32 +180,32 @@ private
 	end
 	
 	def configure_tcmalloc
-		return configure_autoconf_package('source/vendor/google-perftools-0.99.2',
+		return configure_autoconf_package('source/vendor/google-perftools-1.2',
 			'the memory allocator for Ruby Enterprise Edition',
 			'--disable-dependency-tracking')
 	end
 	
 	def compile_tcmalloc
-		Dir.chdir('source/vendor/google-perftools-0.99.2') do
+		Dir.chdir('source/vendor/google-perftools-1.2') do
 			return sh("make libtcmalloc_minimal.la")
 		end
 	end
 	
 	def install_tcmalloc
-		return install_autoconf_package('source/vendor/google-perftools-0.99.2',
+		return install_autoconf_package('source/vendor/google-perftools-1.2',
 		  'the memory allocator for Ruby Enterprise Edition') do
 			sh("mkdir", "-p", "#{@destdir}#{@prefix}/lib") &&
 			# Remove existing .so files so that the copy operation doesn't
 			# overwrite the existing files in-place. Overwriting shared
 			# libraries in-place can cause existing processes that use
 			# those libraries to crash.
-			sh("rm -f '#{@destdir}#{@prefix}/lib'/libtcmalloc_minimal*.#{PlatformInfo::LIBEXT}*") &&
-			sh("cp -pf .libs/libtcmalloc_minimal*.#{PlatformInfo::LIBEXT}* '#{@destdir}#{@prefix}/lib/'")
+			sh("rm -rf '#{@destdir}#{@prefix}/lib'/libtcmalloc_minimal*.#{PlatformInfo::LIBEXT}*") &&
+			sh("cp -Rpf .libs/libtcmalloc_minimal*.#{PlatformInfo::LIBEXT}* '#{@destdir}#{@prefix}/lib/'")
 		end
 	end
 	
 	def configure_ruby
-		return configure_autoconf_package('source', 'Ruby Enterprise Edition')
+		return configure_autoconf_package('source', 'Ruby Enterprise Edition', @extra_configure_args)
 	end
 	
 	def compile_system_allocator
@@ -199,7 +217,7 @@ private
 				# tcmalloc requires a special library. See system_allocator.c
 				# for more information.
 				ENV['DYLD_LIBRARY_PATH'] = "#{ROOT}/source:#{ENV['DYLD_LIBRARY_PATH']}"
-				return sh("#{PlatformInfo::CC} -dynamiclib system_allocator.c -install_name @rpath/libsystem_allocator.dylib -o libsystem_allocator.dylib")
+				return sh("#{PlatformInfo::CC} #{ENV['CFLAGS']} #{ENV['LDFLAGS']} -dynamiclib system_allocator.c -install_name @rpath/libsystem_allocator.dylib -o libsystem_allocator.dylib")
 			end
 		else
 			return true
@@ -219,7 +237,13 @@ private
 				end
 			end
 			
-			prelibs = "-Wl,-rpath,#{@prefix}/lib -L#{@destdir}#{@prefix}/lib"
+			prelibs = "-Wl,"
+			if PlatformInfo.solaris_ld?
+				prelibs << "-R#{@prefix}/lib"
+			else
+				prelibs << "-rpath,#{@prefix}/lib"
+			end
+			prelibs << " -L#{@destdir}#{@prefix}/lib"
 			if tcmalloc_supported?
 				prelibs << " -ltcmalloc_minimal "
 			end
@@ -310,12 +334,11 @@ private
 		else
 			mysql_gem = "mysql"
 		end
-		
-		gem_names = ["passenger", "rake", "rails", "fastthread", "rack", mysql_gem, "sqlite3-ruby", "postgres"]
-		if @install_extra_gems
-			gem_names += ["rails --version 2.0.2", "rails --version 1.2.6",
-				"rails --version 1.1.6", "mongrel", "hpricot", "thin",
-				"rake", "haml", "rspec", "mongrel_cluster"]
+
+		gem_names = []
+		if @install_useful_gems
+			gem_names += ["passenger", "rake", "rails", "fastthread",
+			              "rack", mysql_gem, "sqlite3-ruby", "postgres"]
 		end
 		failed_gems = []
 		
@@ -553,25 +576,41 @@ private
 	end
 end
 
-options = { :tcmalloc => true }
+options = { :tcmalloc => true, :install_useful_gems => true, :extra_configure_args => [] }
 parser = OptionParser.new do |opts|
+	newline = "\n#{' ' * 37}"
+	
 	opts.banner = "Usage: installer [options]"
 	opts.separator("")
 	
 	opts.on("-a", "--auto PREFIX", String,
-	"Automatically install to directory PREFIX\n#{' ' * 37}without any user interaction") do |dir|
+	        "Configure Ruby with prefix PREFIX and#{newline}" <<
+	        "install it without any user interaction.") do |dir|
 		options[:prefix] = dir
 	end
-	opts.on("--destdir DIR", String) do |dir|
+	opts.on("--destdir DIR", String,
+	        "Install everthing under the given#{newline}" <<
+	        "destination directory. Used when building#{newline}" <<
+	        "packages for Ruby Enterprise Edition.") do |dir|
 		options[:destdir] = dir
 	end
-	opts.on("--extra", "Install extra gems") do
-		options[:extra] = true
+	opts.on("-c", "--configure-arg ARG", String,
+	        "Pass an extra argument to the Ruby#{newline}" <<
+	        "configure script. You can specify this#{newline}" <<
+	        "option multiple times to pass multiple#{newline}" <<
+	        "arguments.") do |arg|
+		options[:extra_configure_args] << arg
 	end
-	opts.on("--no-tcmalloc", "Do not install tcmalloc support") do
+	opts.on("--dont-install-useful-gems",
+	        "Do not install a few useful gems that are#{newline}" <<
+	        "normally installed as well: passenger,#{newline}" <<
+	        "rails, mysql, etc.") do
+		options[:install_useful_gems] = false
+	end
+	opts.on("--no-tcmalloc", "Do not install tcmalloc support.") do
 		options[:tcmalloc] = false
 	end
-	opts.on("-h", "--help", "Show this message") do
+	opts.on("-h", "--help", "Show this message.") do
 		puts opts
 		exit
 	end

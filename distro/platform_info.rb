@@ -201,7 +201,17 @@ private
 	end
 	
 	def self.determine_c_compiler
-		return find_command('gcc') || find_command('cc')
+		return ENV['CC'] || find_command('gcc') || find_command('cc')
+	end
+	
+	def self.determine_cxx_compiler
+		return ENV['CXX'] || find_command('g++') || find_command('c++')
+	end
+	
+	# Returns true if the Solaris version of ld is in use.
+	def self.solaris_ld?
+		ld_version = `ld -V 2>&1`
+		return !!ld_version.index("Solaris")
 	end
 
 public
@@ -221,6 +231,7 @@ public
 	end
 	
 	CC = determine_c_compiler
+	CXX = determine_cxx_compiler
 	LIBEXT = determine_libext
 	RUBYLIBEXT = determine_ruby_libext
 
